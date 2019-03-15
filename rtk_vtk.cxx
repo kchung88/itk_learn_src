@@ -22,6 +22,7 @@ int main(int argc, char **argv)
 {
 	const unsigned int Dimension = 3;
 	typedef float      OutputPixelType;
+
 	// Defines the image type
 	#ifdef RTK_USE_CUDA
 		typedef itk::CudaImage< OutputPixelType, Dimension > ImageType;
@@ -34,12 +35,12 @@ int main(int argc, char **argv)
 	GeometryType::Pointer geometry = GeometryType::New();
 
 	// Projection matrices
-	unsigned int numberOfProjections = 150;
+	unsigned int numberOfProjections = 50;
 	unsigned int firstAngle = 0;
 	unsigned int angularArc = 360;
 	unsigned int sid = 600; // source to isocenter distance in mm
 	unsigned int sdd = 1200; // source to detector distance in mm
-	int isox = 0; // X coordinate on the projection image of isocenter
+	int isox = 5; // X coordinate on the projection image of isocenter
 	int isoy = 0; // Y coordinate on the projection image of isocenter
 
 	for (unsigned int noProj = 0; noProj < numberOfProjections; noProj++)
@@ -82,9 +83,15 @@ int main(int argc, char **argv)
 	// Create the projector
 	typedef rtk::RayEllipsoidIntersectionImageFilter<ImageType, ImageType> REIType;
 	REIType::Pointer rei = REIType::New();
-	REIType::VectorType semiprincipalaxis, center;
-	semiprincipalaxis.Fill(50.);
-	center.Fill(0.);
+	REIType::PointType center;
+	REIType::VectorType semiprincipalaxis;
+	//semiprincipalaxis.Fill(50.);
+	semiprincipalaxis[0]=20.;
+	semiprincipalaxis[1]=30.;
+	semiprincipalaxis[2]=10.;
+	center[0] = 0;
+	center[1] = 30;
+	center[2] = 0;
 	//Set GrayScale value, axes, center...
 	rei->SetDensity(2.);
 	rei->SetAngle(0.);
@@ -134,6 +141,11 @@ int main(int argc, char **argv)
 	writer->Update();
 
 	writer->SetFileName("proj.tiff");
+	writer->SetUseCompression(true);
+	writer->SetInput(rei->GetOutput());
+	writer->Update();
+
+	writer->SetFileName("pahn.tiff");
 	writer->SetUseCompression(true);
 	writer->SetInput(rei->GetOutput());
 	writer->Update();
